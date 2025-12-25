@@ -6,7 +6,7 @@
     <title>WONK MINIGAME</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
-        * { 
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -272,16 +272,17 @@
             box-shadow: inset 0 0 30px rgba(0, 50, 150, 0.2);
         }
         
-        /* Реалистичная ракета */
+        /* Реалистичная ракета с наклоном -20 градусов влево */
         .rocket {
             position: absolute;
             bottom: 40px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) rotate(-20deg);
             width: 60px;
             height: 140px;
             transition: bottom 0.05s cubic-bezier(0.33, 1, 0.68, 1);
             z-index: 10;
+            transform-origin: center bottom;
         }
         
         .rocket-body {
@@ -362,7 +363,7 @@
             transform: rotate(10deg);
         }
         
-        /* Пламя из ракеты */
+        /* Пламя из ракеты с учетом наклона -20 градусов */
         .rocket-engine {
             position: absolute;
             bottom: -5px;
@@ -379,7 +380,7 @@
             position: absolute;
             bottom: -60px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) rotate(-20deg);
             width: 80px;
             height: 80px;
             z-index: 9;
@@ -845,7 +846,7 @@
                 <div id="clouds"></div>
                 <div id="gameStars"></div>
                 
-                <!-- Реалистичная ракета -->
+                <!-- Реалистичная ракета с наклоном -20° влево -->
                 <div class="rocket" id="rocket">
                     <div class="rocket-nose"></div>
                     <div class="rocket-body"></div>
@@ -906,7 +907,7 @@
             }
         }
         
-        // ИГРА Ракетка с ОБНОВЛЕННЫМИ шансами и МЕНЬШЕЙ скоростью роста
+        // ИГРА Ракетка с исправленным багом изменения ставки
         class RocketGame {
             constructor() {
                 this.balance = 1000;
@@ -914,20 +915,12 @@
                 this.isPlaying = false;
                 this.currentMultiplier = 1.00;
                 this.targetMultiplier = 1.10;
-                this.rocketSpeed = 0.35; // УМЕНЬШЕНА скорость роста
+                this.rocketSpeed = 0.35;
                 this.gameInterval = null;
                 this.explosionTimeout = null;
                 this.sparkInterval = null;
                 
-                // ОБНОВЛЁННЫЕ ШАНСЫ согласно требованиям:
-                // 1x - 1.10x = 50%
-                // 1.10x - 2x = 20%
-                // 2x - 3x = 10%
-                // 3x - 4x = 8%
-                // 4x - 5x = 7%
-                // 5x - 6x = 5%
-                // Сумма: 50 + 20 + 10 + 8 + 7 + 5 = 100%
-                
+                // Шансы
                 this.multiplierRanges = [
                     { min: 1.00, max: 1.10, chance: 50 },    // 50% - 1.00-1.10x
                     { min: 1.11, max: 2.00, chance: 20 },    // 20% - 1.11-2.00x
@@ -1022,22 +1015,43 @@
             initGame() {
                 this.updateDisplay();
                 
-                this.decreaseBetBtn.addEventListener('click', () => this.changeBet(-100));
-                this.increaseBetBtn.addEventListener('click', () => this.changeBet(100));
+                // Ставки - ИСПРАВЛЕННЫЙ БАГ: теперь можно уменьшать ставку даже если была выбрана слишком большая
+                this.decreaseBetBtn.addEventListener('click', () => this.changeBet(-100, true));
+                this.increaseBetBtn.addEventListener('click', () => this.changeBet(100, false));
+                
                 this.launchBtn.addEventListener('click', () => this.startGame());
                 this.cashoutBtn.addEventListener('click', () => this.cashout());
                 this.backBtn.addEventListener('click', () => this.backToMain());
             }
             
-            changeBet(amount) {
+            changeBet(amount, isDecrease) {
                 if (this.isPlaying) return;
                 
                 const newBet = this.bet + amount;
-                if (newBet >= 100 && newBet <= this.balance) {
-                    this.bet = newBet;
-                    this.updateDisplay();
-                } else if (newBet > this.balance) {
-                    this.showError('У вас недостаточно средств');
+                
+                // ИСПРАВЛЕНИЕ БАГА: при уменьшении ставки всегда разрешаем, если новая ставка >= 100
+                if (isDecrease) {
+                    if (newBet >= 100) {
+                        this.bet = newBet;
+                        this.updateDisplay();
+                        this.clearError();
+                    }
+                } else {
+                    // При увеличении ставки проверяем баланс
+                    if (newBet >= 100 && newBet <= this.balance) {
+                        this.bet = newBet;
+                        this.updateDisplay();
+                        this.clearError();
+                    } else if (newBet > this.balance) {
+                        this.showError('У вас недостаточно средств');
+                    }
+                }
+            }
+            
+            clearError() {
+                if (this.resultMessageElement.style.display === 'block' && 
+                    this.resultMessageElement.classList.contains('error')) {
+                    this.resultMessageElement.style.display = 'none';
                 }
             }
             
@@ -1054,9 +1068,7 @@
                 for (const range of this.multiplierRanges) {
                     cumulativeChance += range.chance;
                     if (rand <= cumulativeChance) {
-                        // Генерируем случайное дробное значение в диапазоне
                         const randomMultiplier = range.min + Math.random() * (range.max - range.min);
-                        // Округляем до 2 знаков после запятой
                         return Math.round(randomMultiplier * 100) / 100;
                     }
                 }
@@ -1075,7 +1087,7 @@
                 this.isPlaying = true;
                 this.currentMultiplier = 1.00;
                 this.targetMultiplier = this.generateTargetMultiplier();
-                this.rocketSpeed = 0.35; // МЕНЬШАЯ начальная скорость
+                this.rocketSpeed = 0.35;
                 
                 // Скрываем кнопку "Назад"
                 this.backBtn.classList.add('hidden');
@@ -1090,29 +1102,24 @@
                 // Запускаем искры
                 this.sparkInterval = setInterval(() => this.createSpark(), 30);
                 
-                // Запускаем игру с МЕНЬШЕЙ частотой
+                // Запускаем игру
                 this.gameInterval = setInterval(() => this.updateGame(), 50);
             }
             
             updateGame() {
-                // МЕНЬШАЯ скорость роста множителя
                 this.currentMultiplier += 0.008 * this.rocketSpeed;
                 
-                // Округляем до 2 знаков после запятой для отображения
                 const displayedMultiplier = Math.round(this.currentMultiplier * 100) / 100;
                 this.currentMultiplierElement.textContent = `${displayedMultiplier.toFixed(2)}x`;
                 
-                // Двигаем ракету
                 const rocketHeight = 40 + (this.currentMultiplier - 1) * 16;
                 this.rocketElement.style.bottom = `${rocketHeight}px`;
                 
-                // МЕНЬШЕЕ ускорение
                 if (this.currentMultiplier > 2) this.rocketSpeed = 0.45;
                 if (this.currentMultiplier > 3) this.rocketSpeed = 0.55;
                 if (this.currentMultiplier > 4) this.rocketSpeed = 0.65;
                 if (this.currentMultiplier > 5) this.rocketSpeed = 0.75;
                 
-                // Проверяем взрыв (на дробных значениях!)
                 if (this.currentMultiplier >= this.targetMultiplier) {
                     this.explode();
                 }
