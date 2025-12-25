@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WONK MINIGAME</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * { 
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            padding: 20px;
+            width: 100%;
+            height: 100vh;
+            touch-action: manipulation;
+        }
+        
+        /* Компактный заголовок сверху */
+        .header-container {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            position: absolute;
+            top: 20px;
+            left: 0;
+            z-index: 10;
+        }
+        
+        .title {
+            font-family: 'Orbitron', 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: white;
+            text-shadow: 0 0 10px rgba(94, 156, 255, 0.8);
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+            border: 2px solid rgba(94, 156, 255, 0.3);
+            display: inline-block;
+            backdrop-filter: blur(5px);
+        }
+        
+        .wonk { 
+            color: #ffcc00;
+            text-shadow: 0 0 5px rgba(255, 204, 0, 0.8);
+        }
+        
+        .minigame { 
+            color: #00ffcc;
+            text-shadow: 0 0 5px rgba(0, 255, 204, 0.8);
+        }
+        
+        /* Центральный контейнер для кнопок */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            width: 100%;
+            max-width: 320px;
+            z-index: 10;
+            margin-top: 40px;
+        }
+        
+        /* Кнопки по центру */
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            color: white;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1.5px;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:active {
+            transform: scale(0.96);
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .btn:active::after {
+            left: 100%;
+        }
+        
+        .btn-what {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: 3px solid rgba(106, 17, 203, 0.6);
+        }
+        
+        .btn-play {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            border: 3px solid rgba(255, 65, 108, 0.6);
+        }
+        
+        /* Мини-модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 25px;
+            border-radius: 20px;
+            width: 100%;
+            color: white;
+            border: 3px solid rgba(94, 156, 255, 0.5);
+            max-width: 400px;
+            font-size: 0.95rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6rem;
+            color: #ffcc00;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+        
+        .modal-text {
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .bad-news { 
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #ff6b6b;
+            margin-bottom: 15px;
+        }
+        
+        .good-news { 
+            color: #00ffcc;
+            background: rgba(0, 255, 204, 0.15);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #00ffcc;
+            margin-bottom: 15px;
+        }
+        
+        .changes { 
+            color: #94a3ff;
+            background: rgba(148, 163, 255, 0.15);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #94a3ff;
+        }
+        
+        .close-modal {
+            background: linear-gradient(45deg, #ff416c 0%, #ff4b2b 100%);
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 25px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+        }
+        
+        .close-modal:active {
+            transform: scale(0.98);
+        }
+        
+        /* Игра Ракетка */
+        .rocket-game {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0a0a1a 0%, #151530 100%);
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 15px;
+            background: rgba(10, 10, 30, 0.8);
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+        
+        .balance {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+        }
+        
+        .game-container {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .rocket-display {
+            flex: 1;
+            background: linear-gradient(180deg, #000510 0%, #001525 100%);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 2px solid rgba(100, 150, 255, 0.3);
+            box-shadow: inset 0 0 30px rgba(0, 50, 150, 0.2);
+        }
+        
+        /* Реалистичная ракета */
+        .rocket {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 140px;
+            transition: bottom 0.05s cubic-bezier(0.33, 1, 0.68, 1);
+            z-index: 10;
+        }
+        
+        .rocket-body {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background: linear-gradient(90deg, 
+                #888888 0%, 
+                #cccccc 25%, 
+                #ffffff 50%, 
+                #cccccc 75%, 
+                #888888 100%);
+            border-radius: 8px 8px 4px 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 
+                0 0 15px rgba(255, 255, 255, 0.4),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 11;
+        }
+        
+        .rocket-nose {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 30px solid #ff3333;
+            filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.7));
+            z-index: 12;
+        }
+        
+        .rocket-window {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 22px;
+            background: radial-gradient(circle at 30% 30%, #00ccff 0%, #0066ff 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 8px rgba(255, 255, 255, 0.6),
+                0 0 10px rgba(0, 200, 255, 0.8);
+            border: 2px solid #ffffff;
+            z-index: 12;
+        }
+        
+        .rocket-fins {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 35px;
+            z-index: 11;
+        }
+        
+        .fin {
+            position: absolute;
+            bottom: 0;
+            width: 18px;
+            height: 35px;
+            background: linear-gradient(45deg, #555555 0%, #777777 100%);
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .fin-left {
+            left: 0;
+            transform: rotate(-10deg);
+        }
+        
+        .fin-right {
+            right: 0;
+            transform: rotate(10deg);
+        }
+        
+        /* Пламя из ракеты */
+        .rocket-engine {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 15px;
+            background: #333333;
+            border-radius: 0 0 8px 8px;
+            z-index: 10;
+        }
+        
+        .rocket-flame-container {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            z-index: 9;
+        }
+        
+        .rocket-flame {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 60px;
+            background: linear-gradient(to bottom, 
+                #ffff00 0%,
+                #ff9900 20%,
+                #ff5500 40%,
+                #ff0000 60%,
+                transparent 90%);
+            border-radius: 50% 50% 15% 15%;
+            animation: flamePulse 0.05s infinite alternate;
+            filter: blur(3px);
+            z-index: 8;
+        }
+        
+        @keyframes flamePulse {
+            0% { 
+                height: 50px; 
+                width: 25px;
+                filter: blur(2px) brightness(1);
+            }
+            50% { 
+                height: 65px; 
+                width: 32px;
+                filter: blur(3px) brightness(1.2);
+            }
+            100% { 
+                height: 60px; 
+                width: 28px;
+                filter: blur(3px) brightness(1.1);
+            }
+        }
+        
+        .flame-spark {
+            position: absolute;
+            background: #ffff00;
+            border-radius: 50%;
+            animation: sparkFloat 0.8s infinite linear;
+            z-index: 7;
+        }
+        
+        @keyframes sparkFloat {
+            0% { 
+                transform: translateY(0) translateX(0) scale(0.5);
+                opacity: 1;
+            }
+            100% { 
+                transform: translateY(-80px) translateX(var(--spark-x)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .rocket-exhaust {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 25px;
+            background: linear-gradient(to bottom, 
+                rgba(255, 200, 0, 0.5) 0%,
+                rgba(255, 100, 0, 0.3) 50%,
+                rgba(255, 50, 0, 0.1) 100%);
+            border-radius: 50%;
+            filter: blur(8px);
+            animation: exhaustPulse 0.1s infinite alternate;
+            z-index: 6;
+        }
+        
+        @keyframes exhaustPulse {
+            0% { 
+                width: 40px;
+                height: 20px;
+                opacity: 0.7;
+            }
+            100% { 
+                width: 60px;
+                height: 30px;
+                opacity: 0.9;
+            }
+        }
+        
+        .multiplier {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            color: #00ff00;
+            text-shadow: 
+                0 0 10px #00ff00,
+                0 0 20px #00ff00,
+                0 0 30px #00ff00;
+            font-weight: bold;
+            z-index: 5;
+            animation: multiplierGlow 0.8s infinite alternate;
+        }
+        
+        @keyframes multiplierGlow {
+            0% { 
+                text-shadow: 
+                    0 0 5px #00ff00,
+                    0 0 10px #00ff00;
+            }
+            100% { 
+                text-shadow: 
+                    0 0 15px #00ff00,
+                    0 0 30px #00ff00,
+                    0 0 45px #00ff00;
+            }
+        }
+        
+        .explosion {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, 
+                rgba(255, 100, 0, 0.9) 0%,
+                rgba(255, 50, 0, 0.7) 30%,
+                rgba(255, 0, 0, 0.5) 60%,
+                transparent 80%);
+            border-radius: 50%;
+            display: none;
+            animation: explode 0.8s ease-out;
+            filter: blur(10px);
+            z-index: 20;
+        }
+        
+        @keyframes explode {
+            0% { 
+                transform: translate(-50%, -50%) scale(0); 
+                opacity: 0;
+            }
+            20% { 
+                transform: translate(-50%, -50%) scale(1.2); 
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(2); 
+                opacity: 0;
+            }
+        }
+        
+        .explosion-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ff5500;
+            border-radius: 50%;
+            animation: particleFly 0.8s ease-out forwards;
+        }
+        
+        @keyframes particleFly {
+            0% { 
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% { 
+                transform: translate(var(--particle-x), var(--particle-y)) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .bet-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .bet-amount {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+        }
+        
+        .bet-btn {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            font-size: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .bet-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .game-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .launch-btn, .cashout-btn {
+            flex: 1;
+            background: linear-gradient(45deg, #FF5722, #FF9800);
+            border: none;
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(255, 87, 34, 0.4);
+            letter-spacing: 1px;
+        }
+        
+        .cashout-btn {
+            background: linear-gradient(45deg, #2196F3, #03A9F4);
+            display: none;
+            box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+        }
+        
+        .launch-btn:active, .cashout-btn:active {
+            transform: scale(0.97);
+        }
+        
+        .back-btn {
+            background: linear-gradient(45deg, #9C27B0, #673AB7);
+            border: none;
+            color: white;
+            padding: 14px;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(156, 39, 176, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn.hidden {
+            display: none;
+        }
+        
+        .back-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .result {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1rem;
+            display: none;
+            border-left: 4px solid transparent;
+            animation: resultAppear 0.3s ease;
+        }
+        
+        @keyframes resultAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .win {
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00;
+            border-left-color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        .lose {
+            color: #ff0000;
+            text-shadow: 0 0 5px #ff0000;
+            border-left-color: #ff0000;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        
+        .error {
+            color: #ffcc00;
+            text-shadow: 0 0 5px #ffcc00;
+            border-left-color: #ffcc00;
+            background: rgba(255, 204, 0, 0.1);
+        }
+        
+        /* Звёзды на фоне */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
+        /* Облака на фоне игры */
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            animation: cloudMove 40s linear infinite;
+        }
+        
+        @keyframes cloudMove {
+            0% { transform: translateY(400px); }
+            100% { transform: translateY(-100px); }
+        }
+        
+        /* Мелкие звёзды в игре */
+        .game-star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: starTwinkle 2s infinite alternate;
+        }
+        
+        @keyframes starTwinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        /* Адаптация */
+        @media (max-width: 400px) {
+            .title {
+                font-size: 1.5rem;
+                padding: 10px 20px;
+            }
+            
+            .btn {
+                font-size: 1.2rem;
+                padding: 18px 36px;
+                min-height: 65px;
+            }
+            
+            .main-container {
+                gap: 20px;
+            }
+            
+            .rocket {
+                width: 50px;
+                height: 120px;
+            }
+            
+            .rocket-body {
+                width: 40px;
+                height: 85px;
+            }
+            
+            .multiplier {
+                font-size: 2.2rem;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .main-container {
+                margin-top: 20px;
+                gap: 15px;
+            }
+            
+            .btn {
+                padding: 15px 30px;
+                min-height: 60px;
+                font-size: 1.1rem;
+            }
+            
+            .rocket-display {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Звёздное небо -->
+    <div class="stars" id="stars"></div>
+    
+    <!-- Заголовок сверху -->
+    <div class="header-container">
+        <h1 class="title">
+            НОВОСТИ <span class="wonk">WONK</span> <span class="minigame">MINIGAME</span>
+        </h1>
+    </div>
+    
+    <!-- Центральный контейнер с кнопками -->
+    <div class="main-container">
+        <button class="btn btn-what" id="whatBtn">ЧТО БУДЕТ</button>
+        <button class="btn btn-play" id="playBtn">ИГРАТЬ</button>
+    </div>
+    
+    <!-- Модальное окно -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <h2 class="modal-title">ОБНОВЛЕНИЯ В WONK MINIGAME</h2>
+            
+            <div class="bad-news modal-text">
+                В скором времени нам готовят новое казино, возможно обнуление ваших балансов :(
+            </div>
+            
+            <div class="good-news modal-text">
+                Также есть хорошие новости: WONK MINIGAME станет гораздо лучше.
+            </div>
+            
+            <div class="changes modal-text">
+                Что точно изменится:<br>
+                1. Как работает ракетка (будет сложнее зарабатывать)<br>
+                2. А так же изменятся иные игры.
+            </div>
+            
+            <button class="close-modal" id="closeModalBtn">ПОНЯТНО</button>
+        </div>
+    </div>
+    
+    <!-- Игра Ракетка -->
+    <div class="rocket-game" id="rocketGame">
+        <div class="game-header">
+            <div class="balance" id="balance">Баланс: 1000 ₽</div>
+            <div class="balance" id="multiplierDisplay">Макс: 1.10x</div>
+        </div>
+        
+        <div class="game-container">
+            <div class="rocket-display" id="rocketDisplay">
+                <!-- Облака и звёзды -->
+                <div id="clouds"></div>
+                <div id="gameStars"></div>
+                
+                <!-- Реалистичная ракета -->
+                <div class="rocket" id="rocket">
+                    <div class="rocket-nose"></div>
+                    <div class="rocket-body"></div>
+                    <div class="rocket-window"></div>
+                    <div class="rocket-fins">
+                        <div class="fin fin-left"></div>
+                        <div class="fin fin-right"></div>
+                    </div>
+                    <div class="rocket-engine"></div>
+                    <div class="rocket-flame-container" id="flameContainer">
+                        <div class="rocket-flame"></div>
+                        <div class="rocket-exhaust"></div>
+                    </div>
+                </div>
+                
+                <div class="multiplier" id="currentMultiplier">1.00x</div>
+                <div class="explosion" id="explosion"></div>
+            </div>
+            
+            <div class="controls">
+                <div class="bet-controls">
+                    <button class="bet-btn" id="decreaseBet">-100</button>
+                    <div class="bet-amount" id="betAmount">100 ₽</div>
+                    <button class="bet-btn" id="increaseBet">+100</button>
+                </div>
+                
+                <div class="game-buttons">
+                    <button class="launch-btn" id="launchBtn">🚀 ЗАПУСТИТЬ</button>
+                    <button class="cashout-btn" id="cashoutBtn">💰 ЗАБРАТЬ</button>
+                </div>
+                
+                <div class="result" id="resultMessage"></div>
+                
+                <button class="back-btn" id="backBtn">← НАЗАД</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Создание звёзд
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 80;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                const size = Math.random() * 2 + 1;
+                star.style.width = star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 3}s`;
+                star.style.animationDuration = `${Math.random() * 2 + 2}s`;
+                star.style.opacity = Math.random() * 0.5 + 0.2;
+                
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // ИГРА Ракетка с ОБНОВЛЕННЫМИ шансами и МЕНЬШЕЙ скоростью роста
+        class RocketGame {
+            constructor() {
+                this.balance = 1000;
+                this.bet = 100;
+                this.isPlaying = false;
+                this.currentMultiplier = 1.00;
+                this.targetMultiplier = 1.10;
+                this.rocketSpeed = 0.35; // УМЕНЬШЕНА скорость роста
+                this.gameInterval = null;
+                this.explosionTimeout = null;
+                this.sparkInterval = null;
+                
+                // ОБНОВЛЁННЫЕ ШАНСЫ согласно требованиям:
+                // 1x - 1.10x = 50%
+                // 1.10x - 2x = 20%
+                // 2x - 3x = 10%
+                // 3x - 4x = 8%
+                // 4x - 5x = 7%
+                // 5x - 6x = 5%
+                // Сумма: 50 + 20 + 10 + 8 + 7 + 5 = 100%
+                
+                this.multiplierRanges = [
+                    { min: 1.00, max: 1.10, chance: 50 },    // 50% - 1.00-1.10x
+                    { min: 1.11, max: 2.00, chance: 20 },    // 20% - 1.11-2.00x
+                    { min: 2.01, max: 3.00, chance: 10 },    // 10% - 2.01-3.00x
+                    { min: 3.01, max: 4.00, chance: 8 },     // 8% - 3.01-4.00x
+                    { min: 4.01, max: 5.00, chance: 7 },     // 7% - 4.01-5.00x
+                    { min: 5.01, max: 6.00, chance: 5 }      // 5% - 5.01-6.00x
+                ];
+                
+                this.totalChance = this.multiplierRanges.reduce((sum, item) => sum + item.chance, 0);
+                
+                // Элементы игры
+                this.balanceElement = document.getElementById('balance');
+                this.betAmountElement = document.getElementById('betAmount');
+                this.currentMultiplierElement = document.getElementById('currentMultiplier');
+                this.multiplierDisplayElement = document.getElementById('multiplierDisplay');
+                this.rocketElement = document.getElementById('rocket');
+                this.explosionElement = document.getElementById('explosion');
+                this.launchBtn = document.getElementById('launchBtn');
+                this.cashoutBtn = document.getElementById('cashoutBtn');
+                this.resultMessageElement = document.getElementById('resultMessage');
+                this.decreaseBetBtn = document.getElementById('decreaseBet');
+                this.increaseBetBtn = document.getElementById('increaseBet');
+                this.backBtn = document.getElementById('backBtn');
+                this.rocketDisplay = document.getElementById('rocketDisplay');
+                this.flameContainer = document.getElementById('flameContainer');
+                
+                this.initGame();
+                this.createGameBackground();
+            }
+            
+            createGameBackground() {
+                // Облака
+                const cloudsContainer = document.getElementById('clouds');
+                for (let i = 0; i < 5; i++) {
+                    const cloud = document.createElement('div');
+                    cloud.classList.add('cloud');
+                    
+                    const size = Math.random() * 60 + 30;
+                    cloud.style.width = `${size}px`;
+                    cloud.style.height = `${size / 2}px`;
+                    cloud.style.left = `${Math.random() * 100}%`;
+                    cloud.style.opacity = Math.random() * 0.08 + 0.02;
+                    cloud.style.animationDelay = `${Math.random() * 40}s`;
+                    
+                    cloudsContainer.appendChild(cloud);
+                }
+                
+                // Звёзды в игре
+                const starsContainer = document.getElementById('gameStars');
+                for (let i = 0; i < 40; i++) {
+                    const star = document.createElement('div');
+                    star.classList.add('game-star');
+                    
+                    const size = Math.random() * 2 + 1;
+                    star.style.width = star.style.height = `${size}px`;
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.animationDelay = `${Math.random() * 2}s`;
+                    star.style.opacity = Math.random() * 0.4 + 0.1;
+                    
+                    starsContainer.appendChild(star);
+                }
+            }
+            
+            createSpark() {
+                if (!this.isPlaying || !this.flameContainer) return;
+                
+                const spark = document.createElement('div');
+                spark.classList.add('flame-spark');
+                
+                const size = Math.random() * 4 + 2;
+                const startX = (Math.random() - 0.5) * 30;
+                const sparkX = (Math.random() - 0.5) * 60;
+                
+                spark.style.width = `${size}px`;
+                spark.style.height = `${size}px`;
+                spark.style.setProperty('--spark-x', `${sparkX}px`);
+                spark.style.left = `calc(50% + ${startX}px)`;
+                spark.style.animationDuration = `${Math.random() * 0.5 + 0.5}s`;
+                spark.style.background = Math.random() > 0.5 ? '#ffff00' : '#ff9900';
+                
+                this.flameContainer.appendChild(spark);
+                
+                setTimeout(() => {
+                    if (spark.parentNode) {
+                        spark.remove();
+                    }
+                }, 800);
+            }
+            
+            initGame() {
+                this.updateDisplay();
+                
+                this.decreaseBetBtn.addEventListener('click', () => this.changeBet(-100));
+                this.increaseBetBtn.addEventListener('click', () => this.changeBet(100));
+                this.launchBtn.addEventListener('click', () => this.startGame());
+                this.cashoutBtn.addEventListener('click', () => this.cashout());
+                this.backBtn.addEventListener('click', () => this.backToMain());
+            }
+            
+            changeBet(amount) {
+                if (this.isPlaying) return;
+                
+                const newBet = this.bet + amount;
+                if (newBet >= 100 && newBet <= this.balance) {
+                    this.bet = newBet;
+                    this.updateDisplay();
+                } else if (newBet > this.balance) {
+                    this.showError('У вас недостаточно средств');
+                }
+            }
+            
+            updateDisplay() {
+                this.balanceElement.textContent = `Баланс: ${this.balance} ₽`;
+                this.betAmountElement.textContent = `${this.bet} ₽`;
+                this.multiplierDisplayElement.textContent = `Макс: ${this.targetMultiplier.toFixed(2)}x`;
+            }
+            
+            generateTargetMultiplier() {
+                const rand = Math.random() * this.totalChance;
+                let cumulativeChance = 0;
+                
+                for (const range of this.multiplierRanges) {
+                    cumulativeChance += range.chance;
+                    if (rand <= cumulativeChance) {
+                        // Генерируем случайное дробное значение в диапазоне
+                        const randomMultiplier = range.min + Math.random() * (range.max - range.min);
+                        // Округляем до 2 знаков после запятой
+                        return Math.round(randomMultiplier * 100) / 100;
+                    }
+                }
+                
+                return 1.10;
+            }
+            
+            startGame() {
+                if (this.bet > this.balance) {
+                    this.showError('У вас недостаточно средств');
+                    return;
+                }
+                
+                if (this.isPlaying) return;
+                
+                this.isPlaying = true;
+                this.currentMultiplier = 1.00;
+                this.targetMultiplier = this.generateTargetMultiplier();
+                this.rocketSpeed = 0.35; // МЕНЬШАЯ начальная скорость
+                
+                // Скрываем кнопку "Назад"
+                this.backBtn.classList.add('hidden');
+                
+                this.resultMessageElement.style.display = 'none';
+                this.rocketElement.style.bottom = '40px';
+                this.explosionElement.style.display = 'none';
+                
+                this.launchBtn.style.display = 'none';
+                this.cashoutBtn.style.display = 'block';
+                
+                // Запускаем искры
+                this.sparkInterval = setInterval(() => this.createSpark(), 30);
+                
+                // Запускаем игру с МЕНЬШЕЙ частотой
+                this.gameInterval = setInterval(() => this.updateGame(), 50);
+            }
+            
+            updateGame() {
+                // МЕНЬШАЯ скорость роста множителя
+                this.currentMultiplier += 0.008 * this.rocketSpeed;
+                
+                // Округляем до 2 знаков после запятой для отображения
+                const displayedMultiplier = Math.round(this.currentMultiplier * 100) / 100;
+                this.currentMultiplierElement.textContent = `${displayedMultiplier.toFixed(2)}x`;
+                
+                // Двигаем ракету
+                const rocketHeight = 40 + (this.currentMultiplier - 1) * 16;
+                this.rocketElement.style.bottom = `${rocketHeight}px`;
+                
+                // МЕНЬШЕЕ ускорение
+                if (this.currentMultiplier > 2) this.rocketSpeed = 0.45;
+                if (this.currentMultiplier > 3) this.rocketSpeed = 0.55;
+                if (this.currentMultiplier > 4) this.rocketSpeed = 0.65;
+                if (this.currentMultiplier > 5) this.rocketSpeed = 0.75;
+                
+                // Проверяем взрыв (на дробных значениях!)
+                if (this.currentMultiplier >= this.targetMultiplier) {
+                    this.explode();
+                }
+            }
+            
+            cashout() {
+                if (!this.isPlaying) return;
+                
+                this.stopGame();
+                this.isPlaying = false;
+                
+                const currentMultiplierRounded = Math.round(this.currentMultiplier * 100) / 100;
+                const winAmount = Math.floor(this.bet * currentMultiplierRounded);
+                this.balance += winAmount - this.bet;
+                
+                // Показываем кнопку "Назад"
+                this.backBtn.classList.remove('hidden');
+                
+                this.showResult(true, winAmount, currentMultiplierRounded);
+                this.resetButtons();
+                this.updateDisplay();
+            }
+            
+            explode() {
+                this.stopGame();
+                this.isPlaying = false;
+                
+                this.explosionElement.style.display = 'block';
+                this.createExplosionParticles();
+                this.balance -= this.bet;
+                
+                // Показываем кнопку "Назад"
+                this.backBtn.classList.remove('hidden');
+                
+                const currentMultiplierRounded = Math.round(this.currentMultiplier * 100) / 100;
+                this.showResult(false, 0, currentMultiplierRounded);
+                this.resetButtons();
+                this.updateDisplay();
+                
+                if (this.explosionTimeout) clearTimeout(this.explosionTimeout);
+                this.explosionTimeout = setTimeout(() => {
+                    this.explosionElement.style.display = 'none';
+                }, 1000);
+            }
+            
+            createExplosionParticles() {
+                for (let i = 0; i < 25; i++) {
+                    setTimeout(() => {
+                        const particle = document.createElement('div');
+                        particle.classList.add('explosion-particle');
+                        
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = Math.random() * 120 + 60;
+                        const size = Math.random() * 8 + 5;
+                        const duration = Math.random() * 0.6 + 0.4;
+                        
+                        particle.style.setProperty('--particle-x', `${Math.cos(angle) * distance}px`);
+                        particle.style.setProperty('--particle-y', `${Math.sin(angle) * distance}px`);
+                        particle.style.width = `${size}px`;
+                        particle.style.height = `${size}px`;
+                        particle.style.background = i % 3 === 0 ? '#ffff00' : i % 3 === 1 ? '#ff8800' : '#ff0000';
+                        particle.style.animationDuration = `${duration}s`;
+                        
+                        this.explosionElement.appendChild(particle);
+                        
+                        setTimeout(() => {
+                            if (particle.parentNode) {
+                                particle.remove();
+                            }
+                        }, duration * 1000);
+                    }, i * 20);
+                }
+            }
+            
+            stopGame() {
+                clearInterval(this.gameInterval);
+                clearInterval(this.sparkInterval);
+            }
+            
+            showResult(isWin, amount, multiplier) {
+                this.resultMessageElement.style.display = 'block';
+                
+                if (isWin) {
+                    this.resultMessageElement.textContent = `✅ +${amount - this.bet} ₽ (${multiplier.toFixed(2)}x)`;
+                    this.resultMessageElement.className = 'result win';
+                } else {
+                    this.resultMessageElement.textContent = `💥 Взорвалось на ${multiplier.toFixed(2)}x! -${this.bet} ₽`;
+                    this.resultMessageElement.className = 'result lose';
+                }
+            }
+            
+            showError(message) {
+                this.resultMessageElement.style.display = 'block';
+                this.resultMessageElement.textContent = `⚠️ ${message}`;
+                this.resultMessageElement.className = 'result error';
+                
+                setTimeout(() => {
+                    this.resultMessageElement.style.display = 'none';
+                }, 2000);
+            }
+            
+            resetButtons() {
+                this.launchBtn.style.display = 'block';
+                this.cashoutBtn.style.display = 'none';
+            }
+            
+            backToMain() {
+                this.stopGame();
+                if (this.explosionTimeout) clearTimeout(this.explosionTimeout);
+                document.getElementById('rocketGame').style.display = 'none';
+            }
+        }
+        
+        // Обработчики кнопок
+        function setupButtons() {
+            const btnWhat = document.getElementById('whatBtn');
+            const btnPlay = document.getElementById('playBtn');
+            const modal = document.getElementById('infoModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const rocketGame = document.getElementById('rocketGame');
+            
+            let gameInstance = null;
+            
+            btnWhat.addEventListener('click', function() {
+                this.style.transform = 'scale(0.96)';
+                setTimeout(() => this.style.transform = '', 200);
+                modal.style.display = 'flex';
+            });
+            
+            btnPlay.addEventListener('click', function() {
+                this.style.transform = 'scale(0.96)';
+                setTimeout(() => this.style.transform = '', 200);
+                rocketGame.style.display = 'flex';
+                
+                if (!gameInstance) {
+                    gameInstance = new RocketGame();
+                } else {
+                    gameInstance.updateDisplay();
+                }
+            });
+            
+            closeModalBtn.addEventListener('click', function() {
+                this.style.transform = 'scale(0.96)';
+                setTimeout(() => this.style.transform = '', 200);
+                modal.style.display = 'none';
+            });
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.style.display = 'none';
+                }
+            });
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            setupButtons();
+        });
+        
+        // Предотвращаем масштабирование
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
